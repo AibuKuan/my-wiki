@@ -127,3 +127,14 @@
     @apply font-sans;
   }
 }
+
+@layer blocknote {
+  .bn-container, 
+  .bn-editor {
+    height: 100% !important;
+    min-height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto
+  }
+}
