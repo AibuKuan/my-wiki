@@ -38,7 +38,7 @@ export const pageService = {
     userId: string,
     title: string,
     content: string,
-    parentId?: string,
+    parentId?: string | null,
   ) => {
     return await prisma.page.create({
       data: {

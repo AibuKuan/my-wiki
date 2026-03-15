@@ -14,7 +14,8 @@ export async function handleCreatePage(prevState: any, formData: FormData) {
 
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
-    const parentId = formData.get("parent") as string;
+    const parentRaw = formData.get("parent") as string ?? null;
+    const parentId = parentRaw === "" ? null : parentRaw;
     console.log("information: ", title, content, parentId);
 
     if (!title || title.length < 3) {
