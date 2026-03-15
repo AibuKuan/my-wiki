@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@source "../node_modules/@blocknote/shadcn";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -128,13 +130,34 @@
   }
 }
 
-@layer blocknote {
-  .bn-container, 
-  .bn-editor {
-    height: 100% !important;
-    min-height: 100% !important;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto
+/* BlockNote Styles */
+.bn-container, 
+.bn-editor {
+  height: 100% !important;
+  min-height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto
+}
+
+.bn-side-menu {
+  /* This ensures the plus/drag handle uses your text color */
+  color: hsl(var(--foreground)) !important;
+}
+
+.bn-drag-handle, .bn-plus-button {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Fix for Heading 1 on mobile */
+.bn-root [data-level="1"] {
+  font-size: 0.5rem !important; /* Adjust as needed */
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .bn-root [data-level="1"] {
+    font-size: 2.5rem !important;
   }
 }

@@ -15,7 +15,7 @@ export default function Editor({ page }: { page: any }) {
   const onChange = useDebouncedCallback(async () => {
     console.log("Content changed:", editor.document);
     console.log("page id:", page.id);
-    handleUpdatePage(page.id, editor.document);
+    handleUpdatePage({id: page.id, content: editor.document});
   }, 1000);
 
   // const onChange = async () => {
@@ -26,5 +26,6 @@ export default function Editor({ page }: { page: any }) {
   return <BlockNoteView 
     editor={editor} 
     onChange={onChange}  
+    theme="light"
   />;
 }

@@ -1,13 +1,23 @@
 "use client";
 
 import {
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { ChevronRight, Folder, Plus, File, Pencil } from "lucide-react";
+import {
+  ChevronRight,
+  Folder,
+  Plus,
+  File,
+  Pencil,
+  MoreHorizontal,
+  ChevronDown,
+  Trash2Icon,
+} from "lucide-react";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -16,8 +26,28 @@ import {
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { TooltipTrigger, TooltipContent, Tooltip } from "./ui/tooltip";
-import { handleCreatePage } from "@/actions/page";
+import { handleCreatePage, handleDeletePage, handleUpdatePage } from "@/actions/page";
 import NewPageDialog from "./new-page-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { Button } from "./ui/button";
 
 export default function PageHierarchy({ item }: { item: any }) {
   const [isRenaming, setIsRenaming] = useState(false);
@@ -32,45 +62,65 @@ export default function PageHierarchy({ item }: { item: any }) {
   }, [isRenaming]);
 
   const handleRename = () => {
-    // TODO: persist rename
+    handleUpdatePage({id: item.id, title: renameValue});
     setIsRenaming(false);
   };
 
-  const handleAddPage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // TODO: trigger add page under item.id
-  };
-
-  const handleRenameClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRenameClick = () => {
     setIsRenaming(true);
   };
 
-  const actions = (
-    <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover/nav-item:opacity-100 transition-opacity">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={handleRenameClick}
-            className="p-0.5 rounded hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground"
-          >
-            <Pencil className="size-3" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Rename</TooltipContent>
-      </Tooltip>
+  const handleDeleteClick = async () => {
+    await handleDeletePage(item.id);
+  };
 
-      <NewPageDialog parent={item}>
-        <button
-          // onClick={() => console.log('im clicking instead')}
-          className="p-0.5 rounded hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground"
-        >
-          <Plus className="size-3" />
-        </button>
-      </NewPageDialog>
-    </div>
+  const actions = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent side="right" align="start">
+        <DropdownMenuItem onSelect={handleRenameClick}>
+          <Pencil className="size-3 mr-2" />
+          Rename
+        </DropdownMenuItem>
+
+        <NewPageDialog parent={item}>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <Plus className="size-3 mr-2" />
+            Add page
+          </DropdownMenuItem>
+        </NewPageDialog>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Trash2Icon className="size-3 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent size="sm">
+            <AlertDialogHeader>
+              <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                <Trash2Icon />
+              </AlertDialogMedia>
+              <AlertDialogTitle>Delete page?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this page. Are you sure?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={handleDeleteClick}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   const titleContent = isRenaming ? (
@@ -87,53 +137,45 @@ export default function PageHierarchy({ item }: { item: any }) {
         }
       }}
       onClick={(e) => e.preventDefault()}
-      className="bg-transparent outline outline-1 outline-sidebar-ring rounded px-1 w-full text-sm"
+      className="bg-transparent outline outline-1 outline-sidebar-ring rounded px-1 w-full text-sm truncate min-w-0"
     />
   ) : (
-    <span>{renameValue}</span>
+    <span className="truncate min-w-0">{renameValue}</span>
   );
 
-  // Base case: leaf node (no children)
-  if (!item.children || item.children.length === 0) {
-    return (
-      <SidebarMenuSubItem className="group/nav-item">
-        <SidebarMenuSubButton asChild>
-          <div className="flex items-center w-full pr-2 hover:bg-sidebar-accent rounded-md"> {/*<--- stack trace is here'*/}
-            <Link href={`/page/${item.id}`} className="flex items-center gap-2 flex-1 p-2">
-              <File className="size-4 shrink-0" />
-              {titleContent}
-            </Link>
-            {!isRenaming && actions}
-          </div>
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-    );
-  }
+  const isLeaf = !item.children || item.children.length === 0;
 
-  // Recursive case: folder with children
   return (
     <SidebarMenuItem className="group/nav-item">
-      <Collapsible className="group/collapsible">
+      <Collapsible className={`group/collapsible`} disabled={isLeaf}>
         <div className="flex items-center">
-          <CollapsibleTrigger asChild>
-            <SidebarMenuButton className="flex-1" asChild>
-              <div className="flex items-center w-full pr-2 hover:bg-sidebar-accent rounded-md">
-                <Link
-                  href={`/page/${item.id}`}
-                  className="flex items-center gap-2 flex-1 p-2"
-                >
-                  <Folder className="size-4 shrink-0" />
-                  {titleContent}
-                </Link>
-                {!isRenaming && actions}
-                <ChevronRight className="size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-              </div>
-            </SidebarMenuButton>
-          </CollapsibleTrigger>
+          <SidebarMenuButton className="flex-1" asChild>
+            <div className="flex items-center w-full pr-2 hover:bg-sidebar-accent rounded-md">
+              {!isLeaf && (
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="p-1">
+                    <ChevronDown
+                      className={`size-4 shrink-0 transition-transform -rotate-90 [[data-state=open]>&]:rotate-0`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+              )}
+
+              <Link
+                href={`/page/${item.id}`}
+                className="flex items-center gap-2 flex-1 p-2 min-w-0"
+              >
+                <File className="size-4 shrink-0" />
+                {titleContent}
+              </Link>
+            </div>
+          </SidebarMenuButton>
+
+          <SidebarMenuAction>{!isRenaming && actions}</SidebarMenuAction>
         </div>
         <CollapsibleContent>
           <SidebarMenuSub>
-            {item.children.map((subItem: any) => (
+            {item.children?.map((subItem: any) => (
               <PageHierarchy key={subItem.id} item={subItem} />
             ))}
           </SidebarMenuSub>

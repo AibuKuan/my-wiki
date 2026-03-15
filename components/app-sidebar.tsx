@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import NewPageDialog from "./new-page-dialog";
 import { pageService } from "@/services/page";
 import PageHierarchy from "./page-hierarchy";
+import { buildTree } from "@/utils/page";
 
 const projects = [
   {
@@ -59,6 +60,9 @@ export async function AppSidebar() {
   }
 
   const pages = await pageService.getPages(session.user?.id as string);
+  const tree = buildTree(pages);
+  
+  // console.dir(tree, { depth: null });
 
   return (
     <Sidebar>
@@ -112,7 +116,7 @@ export async function AppSidebar() {
             </SidebarMenuItem>
           </NewPageDialog>
 
-          {pages.map((item) => (
+          {tree.map((item) => (
             <PageHierarchy key={item.id} item={item} />
           ))}
         </SidebarMenu>
