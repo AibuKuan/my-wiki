@@ -1,13 +1,15 @@
 import { auth } from "@/auth";
 import { Editor } from "@/components/dynamic-editor";
 import { pageService } from "@/services/page";
+import { notFound } from "next/navigation";
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: "You must be logged in to perform this action." };
+    notFound();
   }
-  const { id } = await params
+  
   const page = await pageService.getPage(session.user.id, id);
 
   return (
