@@ -130,7 +130,7 @@
   }
 }
 
-/* BlockNote Styles */
+/* #region BlockNote Styles */
 .bn-container, 
 .bn-editor {
   height: 100% !important;
@@ -156,8 +156,18 @@
   line-height: 1.2;
 }
 
+
+@media (max-width: 768px) {
+  .bn-toolbar.bn-formatting-toolbar {
+    /* Move toolbar to the bottom of the caret */
+    transform: translateY(90px) !important;
+  }
+}
+
 @media (min-width: 768px) {
   .bn-root [data-level="1"] {
     font-size: 2.5rem !important;
   }
 }
+
+/* #endregion */
