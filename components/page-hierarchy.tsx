@@ -26,12 +26,17 @@ import {
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { TooltipTrigger, TooltipContent, Tooltip } from "./ui/tooltip";
-import { handleCreatePage, handleDeletePage, handleUpdatePage } from "@/actions/page";
+import {
+  handleCreatePage,
+  handleDeletePage,
+  handleUpdatePage,
+} from "@/actions/page";
 import NewPageDialog from "./new-page-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -62,7 +67,7 @@ export default function PageHierarchy({ item }: { item: any }) {
   }, [isRenaming]);
 
   const handleRename = () => {
-    handleUpdatePage({id: item.id, title: renameValue});
+    handleUpdatePage({ id: item.id, title: renameValue });
     setIsRenaming(false);
   };
 
@@ -75,52 +80,94 @@ export default function PageHierarchy({ item }: { item: any }) {
   };
 
   const actions = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <MoreHorizontal className="size-4" />
-      </DropdownMenuTrigger>
+    <div>
+      <Button variant="ghost" size="icon-xs" onClick={handleRenameClick}>
+        <Pencil />
+      </Button>
 
-      <DropdownMenuContent side="right" align="start">
-        <DropdownMenuItem onSelect={handleRenameClick}>
-          <Pencil className="size-3 mr-2" />
-          Rename
-        </DropdownMenuItem>
+      <NewPageDialog parent={item}>
+        <Button variant="ghost" size="icon-xs" onSelect={(e) => e.preventDefault()}>
+          <Plus />
+        </Button>
+      </NewPageDialog>
 
-        <NewPageDialog parent={item}>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <Plus className="size-3 mr-2" />
-            Add page
-          </DropdownMenuItem>
-        </NewPageDialog>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="ghost" size="icon-xs" onSelect={(e) => e.preventDefault()}>
+            <Trash2Icon />
+          </Button>
+        </AlertDialogTrigger>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <Trash2Icon className="size-3 mr-2" />
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+              <Trash2Icon />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Delete page?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this page. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteClick}
+            >
               Delete
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+    // <DropdownMenu>
+    //   <DropdownMenuTrigger asChild>
+    //     <MoreHorizontal className="size-4" />
+    //   </DropdownMenuTrigger>
+    //     <DropdownMenuContent className='z-[100] min-w-[8rem]' side="right" align="start">
+    //       <DropdownMenuItem onSelect={handleRenameClick}>
+    //         <Pencil className="size-3 mr-2" />
+    //         Rename
+    //       </DropdownMenuItem>
 
-          <AlertDialogContent size="sm">
-            <AlertDialogHeader>
-              <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                <Trash2Icon />
-              </AlertDialogMedia>
-              <AlertDialogTitle>Delete page?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this page. Are you sure?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={handleDeleteClick}>
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    //       <NewPageDialog parent={item}>
+    //         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+    //           <Plus className="size-3 mr-2" />
+    //           Add page
+    //         </DropdownMenuItem>
+    //       </NewPageDialog>
+
+    //       <AlertDialog>
+    //         <AlertDialogTrigger asChild>
+    //           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+    //             <Trash2Icon className="size-3 mr-2" />
+    //             Delete
+    //           </DropdownMenuItem>
+    //         </AlertDialogTrigger>
+
+    //         <AlertDialogContent size="sm">
+    //           <AlertDialogHeader>
+    //             <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+    //               <Trash2Icon />
+    //             </AlertDialogMedia>
+    //             <AlertDialogTitle>Delete page?</AlertDialogTitle>
+    //             <AlertDialogDescription>
+    //               This will permanently delete this page. Are you sure?
+    //             </AlertDialogDescription>
+    //           </AlertDialogHeader>
+    //           <AlertDialogFooter>
+    //             <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+    //             <AlertDialogAction
+    //               variant="destructive"
+    //               onClick={handleDeleteClick}
+    //             >
+    //               Delete
+    //             </AlertDialogAction>
+    //           </AlertDialogFooter>
+    //         </AlertDialogContent>
+    //       </AlertDialog>
+    //     </DropdownMenuContent>
+    // </DropdownMenu>
   );
 
   const titleContent = isRenaming ? (
@@ -171,7 +218,7 @@ export default function PageHierarchy({ item }: { item: any }) {
             </div>
           </SidebarMenuButton>
 
-          <SidebarMenuAction>{!isRenaming && actions}</SidebarMenuAction>
+          <div>{!isRenaming && actions}</div>
         </div>
         <CollapsibleContent>
           <SidebarMenuSub>
