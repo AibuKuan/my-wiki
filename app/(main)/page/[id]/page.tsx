@@ -10,7 +10,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     notFound();
   }
   
-  const page = await pageService.getPage(session.user.id, id);
+  const page = await pageService.getPage({userId: session.user.id, id: id});
 
   return (
     <div className="flex flex-col p-4 h-screen">

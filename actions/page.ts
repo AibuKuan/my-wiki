@@ -14,7 +14,7 @@ export async function handleCreatePage(prevState: any, formData: FormData) {
 
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
-    const parentRaw = formData.get("parent") as string ?? null;
+    const parentRaw = (formData.get("parent") as string) ?? null;
     const parentId = parentRaw === "" ? null : parentRaw;
     console.log("information: ", title, content, parentId);
 
@@ -22,12 +22,10 @@ export async function handleCreatePage(prevState: any, formData: FormData) {
       return { error: "Title must be at least 3 characters long." };
     }
 
-    const res = await pageService.createPage(
-      session.user.id,
-      title,
-      content,
-      parentId,
-    );
+    const res = await pageService.createPage({
+      userId: session.user.id,
+      data: { title: title, content: content, parentId: parentId },
+    });
 
     revalidatePath("/sidebar");
     return { success: true, data: res };
@@ -56,8 +54,10 @@ export async function handleUpdatePage({
     const res = await pageService.updatePage({
       userId: session.user.id,
       id: id,
-      title: title,
-      content: content,
+      data: {
+        title: title,
+        content: content,
+      },
     });
 
     revalidatePath("/sidebar");
@@ -74,7 +74,7 @@ export async function handleDeletePage(id: string) {
     if (!session?.user?.id) {
       return { error: "You must be logged in to perform this action." };
     }
-    const res = await pageService.deletePage(session.user.id, id);
+    const res = await pageService.deletePage({userId: session.user.id, id: id});
 
     revalidatePath("/sidebar");
     return { success: true, data: res };

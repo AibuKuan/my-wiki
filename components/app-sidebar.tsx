@@ -59,7 +59,7 @@ export async function AppSidebar() {
     return null;
   }
 
-  const pages = await pageService.getPages(session.user?.id as string);
+  const pages = await pageService.getAll({userId: session.user?.id as string});
   const tree = buildTree(pages);
   
   // console.dir(tree, { depth: null });

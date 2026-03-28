@@ -1,64 +1,60 @@
+import { Page } from "@/generated/prisma/client";
+import {
+  PageUncheckedCreateInput,
+  PageUncheckedUpdateInput,
+} from "@/generated/prisma/models";
 import { prisma } from "@/lib/prisma";
-import { cleanJson } from "@/utils/prisma";
+
+export type PageLightweight = Pick<Page, "id" | "title" | "parentId">;
 
 export const pageService = {
-  getPages: async (userId: string) => {
+  getAll: async ({
+    userId,
+    filter,
+  }: {
+    userId: string;
+    filter?: Omit<Page, "id" | "userId" | "content">;
+  }) => {
     return await prisma.page.findMany({
       where: {
         userId: userId,
-        // parentId: null,
-      },
-      include: {
-        // children: {
-        //   // You can also sort the children inside the include!
-        //   orderBy: {
-        //     title: "asc",
-        //   },
-        // },
-        // parent: true,
+        ...filter,
       },
       orderBy: {
-        title: "asc", // Sorts the main list of pages
+        title: "asc",
       },
     });
   },
-  getPage: async (userId: string, id: string) => {
+  getPage: async ({ userId, id }: { userId: string; id: string }) => {
     return await prisma.page.findUnique({
       where: {
         userId: userId,
         id: id,
       },
-      include: {
-        children: true,
-        parent: true,
-      },
     });
   },
-  createPage: async (
-    userId: string,
-    title: string,
-    content: string,
-    parentId?: string | null,
-  ) => {
+  createPage: async ({
+    userId,
+    data,
+  }: {
+    userId: string;
+    data: Pick<PageUncheckedCreateInput, "title" | "content" | "parentId">;
+  }) => {
     return await prisma.page.create({
       data: {
-        title: title,
         userId: userId,
-        content: content,
-        parentId: parentId ?? null,
+        ...data,
       },
     });
   },
   updatePage: async ({
     userId,
     id,
-    title,
-    content,
+    data,
   }: {
     userId: string;
     id: string;
-    title?: string;
-    content?: object;
+    data: Pick<PageUncheckedUpdateInput, "title" | "content" | "parentId">;
   }) => {
     return await prisma.page.update({
       where: {
@@ -66,17 +62,40 @@ export const pageService = {
         id: id,
       },
       data: {
-        title: title,
-        content: content ? cleanJson(content) : null,
+        ...data,
       },
     });
   },
-  deletePage: async (userId: string, id: string) => {
+  deletePage: async ({ userId, id }: { userId: string; id: string }) => {
     return await prisma.page.delete({
       where: {
         userId: userId,
         id: id,
       },
     });
+  },
+  getBreadcrumbs: async ({
+    pageId,
+    userId,
+  }: {
+    pageId: string;
+    userId: string;
+  }): Promise<PageLightweight[]> => {
+    const breadcrumbs: PageLightweight[] = [];
+    let currentPageId: string | null = pageId;
+
+    while (currentPageId) {
+      const page: PageLightweight | null = await prisma.page.findUnique({
+        where: { id: currentPageId, userId },
+        select: { id: true, title: true, parentId: true }, // Light fetch
+      });
+
+      if (!page) break;
+
+      breadcrumbs.unshift(page); // Add to the beginning of the array
+      currentPageId = page.parentId;
+    }
+
+    return breadcrumbs;
   },
 };
