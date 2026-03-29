@@ -8,11 +8,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  ChevronDown,
-  Plus,
-  User2,
-} from "lucide-react";
+import { ChevronDown, Plus, User2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +20,8 @@ import { handleSignOut } from "@/actions/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import NewPageDialog from "./new-page-dialog";
 import { pageService } from "@/services/page";
-import PageHierarchy from "./page-hierarchy";
 import { buildTree } from "@/utils/page";
+import SidebarNestedItem from "./sidebar-nested-item";
 
 const projects = [
   {
@@ -59,10 +55,10 @@ export async function AppSidebar() {
     return null;
   }
 
-  const pages = await pageService.getAll({userId: session.user?.id as string});
+  const pages = await pageService.getAll({
+    userId: session.user?.id as string,
+  });
   const tree = buildTree(pages);
-  
-  // console.dir(tree, { depth: null });
 
   return (
     <Sidebar>
@@ -106,20 +102,22 @@ export async function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarMenu>
-          <NewPageDialog>
-            <SidebarMenuItem>
-              <SidebarMenuButton>Add New Page</SidebarMenuButton>
-              <SidebarMenuAction>
-                <Plus className="size-4" />
-              </SidebarMenuAction>
-            </SidebarMenuItem>
-          </NewPageDialog>
+        <div className="min-w-full w-fit pb-2 px-2">
+          <SidebarMenu>
+            <NewPageDialog>
+              <SidebarMenuItem>
+                <SidebarMenuButton>Add New Page</SidebarMenuButton>
+                <SidebarMenuAction>
+                  <Plus className="size-4" />
+                </SidebarMenuAction>
+              </SidebarMenuItem>
+            </NewPageDialog>
 
-          {tree.map((item) => (
-            <PageHierarchy key={item.id} item={item} />
-          ))}
-        </SidebarMenu>
+            {tree.map((item) => (
+              <SidebarNestedItem key={item.id} item={item} />
+            ))}
+          </SidebarMenu>
+        </div>
       </SidebarContent>
 
       {/* <SidebarFooter>
@@ -135,4 +133,3 @@ export async function AppSidebar() {
     </Sidebar>
   );
 }
-

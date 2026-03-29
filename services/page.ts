@@ -98,4 +98,44 @@ export const pageService = {
 
     return breadcrumbs;
   },
+  getRoots: async ({ userId }: { userId: string }) => {
+    return await prisma.page.findMany({
+      where: {
+        userId,
+        parentId: null, // Explicitly only top-level
+      },
+      select: {
+        id: true,
+        title: true,
+        parentId: true,
+        _count: {
+          select: { children: true }, // Tells us if it's a leaf or not
+        },
+      },
+      orderBy: { title: "asc" },
+    });
+  },
+  getChildren: async ({
+    userId,
+    parentId,
+  }: {
+    userId: string;
+    parentId: string;
+  }) => {
+    return await prisma.page.findMany({
+      where: {
+        userId,
+        parentId,
+      },
+      select: {
+        id: true,
+        title: true,
+        parentId: true,
+        _count: {
+          select: { children: true },
+        },
+      },
+      orderBy: { title: "asc" },
+    });
+  },
 };

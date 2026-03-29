@@ -16,7 +16,6 @@ export async function handleCreatePage(prevState: any, formData: FormData) {
     const content = formData.get("content") as string;
     const parentRaw = (formData.get("parent") as string) ?? null;
     const parentId = parentRaw === "" ? null : parentRaw;
-    console.log("information: ", title, content, parentId);
 
     if (!title || title.length < 3) {
       return { error: "Title must be at least 3 characters long." };
@@ -74,7 +73,7 @@ export async function handleDeletePage(id: string) {
     if (!session?.user?.id) {
       return { error: "You must be logged in to perform this action." };
     }
-    const res = await pageService.deletePage({userId: session.user.id, id: id});
+    const res = await pageService.deletePage({ userId: session.user.id, id: id });
 
     revalidatePath("/sidebar");
     return { success: true, data: res };
