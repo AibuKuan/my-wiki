@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronRight, File, Pencil, Plus, Trash2Icon } from "lucide-react";
 import {
   Collapsible,
@@ -24,11 +24,14 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { handleUpdatePage, handleDeletePage } from "@/actions/page";
+import { useNavigationStore } from "@/app/stores/use-navigation-store";
 
 export default function PageHierarchy({ item, depth = 0 }: { item: any; depth?: number }) {
   const pathname = usePathname();
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(item.title);
+  const router = useRouter();
+  const setIsNavigating = useNavigationStore((state) => state.setIsNavigating);
   const isLeaf = !item.children || item.children.length === 0;
 
   const isActive = pathname === `/page/${item.id}`;
@@ -37,6 +40,13 @@ export default function PageHierarchy({ item, depth = 0 }: { item: any; depth?: 
     handleUpdatePage({ id: item.id, title: renameValue });
     setIsRenaming(false);
   };
+
+  const handleSelectPage = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/page/${item.id}`);
+  };
+    
 
   return (
     <Collapsible className="group/collapsible w-full" disabled={isLeaf}>
@@ -60,6 +70,7 @@ export default function PageHierarchy({ item, depth = 0 }: { item: any; depth?: 
 
         <Link
           href={`/page/${item.id}`}
+          onClick={handleSelectPage}
           className="flex items-center gap-2 flex-1 py-1.5 min-w-0"
         >
           <File className="size-4 shrink-0 text-muted-foreground" />

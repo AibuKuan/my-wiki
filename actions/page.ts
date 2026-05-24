@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { pageService } from "@/services/page";
+import { cleanJson } from "@/utils/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function handleCreatePage(prevState: any, formData: FormData) {
@@ -50,13 +51,14 @@ export async function handleUpdatePage({
       return { error: "You must be logged in to perform this action." };
     }
 
+    const data: any = {}
+    if (title !== undefined) data.title = title
+    if (content !== undefined) data.content = cleanJson(content)
+
     const res = await pageService.updatePage({
       userId: session.user.id,
       id: id,
-      data: {
-        title: title,
-        content: content,
-      },
+      data: data,
     });
 
     revalidatePath("/sidebar");

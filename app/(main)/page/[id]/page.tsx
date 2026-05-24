@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
-import { Editor } from "@/components/dynamic-editor";
 import { pageService } from "@/services/page";
 import { notFound } from "next/navigation";
+import PageClient from "./components/page-client";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,10 +13,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const page = await pageService.getPage({userId: session.user.id, id: id});
 
   return (
-    <div className="flex flex-col p-4 h-screen">
-      <div className="p-4 h-full flex-1 overflow-hidden">
-        <Editor page={page} />
-      </div>
-    </div>
+    <PageClient page={page} />
   );
 }
