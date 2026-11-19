@@ -4,8 +4,6 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import { useDebouncedCallback } from "use-debounce";
 import { handleUpdatePage } from "@/actions/page";
-
-// @ts-expect-error - BlockNote CSS export type definition missing in older TS resolution
 import "@blocknote/shadcn/style.css";
 import { useNavigationStore } from "@/app/stores/use-navigation-store";
 import { useEffect } from "react";
